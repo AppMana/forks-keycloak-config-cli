@@ -26,6 +26,7 @@ import de.adorsys.keycloak.config.exception.KeycloakProviderException;
 import de.adorsys.keycloak.config.properties.KeycloakConfigProperties;
 import de.adorsys.keycloak.config.util.ResteasyUtil;
 import de.adorsys.keycloak.config.util.VersionUtil;
+import de.adorsys.keycloak.config.util.resteasy.ClientAssertionFilter;
 import dev.failsafe.Failsafe;
 import dev.failsafe.RetryPolicy;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
@@ -44,6 +45,7 @@ import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.time.Duration;
 import java.util.function.Supplier;
@@ -88,6 +90,9 @@ public class KeycloakProvider implements AutoCloseable {
         if (keycloak == null || resteasyClient == null || keycloak.isClosed() || resteasyClient.isClosed()) {
             resteasyClient = resteasyClientSupplier.get();
             resteasyClient.register(JacksonProvider.class);
+            if (hasClientAssertion()) {
+                resteasyClient.register(new ClientAssertionFilter(Path.of(properties.getClientAssertionFile())));
+            }
             keycloak = createKeycloak();
 
             checkServerVersion();
@@ -290,11 +295,16 @@ public class KeycloakProvider implements AutoCloseable {
                 .realm(properties.getLoginRealm())
                 .clientId(properties.getClientId())
                 .grantType(properties.getGrantType())
-                .clientSecret(properties.getClientSecret())
+                .clientSecret(hasClientAssertion() ? null : properties.getClientSecret())
                 .username(properties.getUser())
                 .password(properties.getPassword())
                 .resteasyClient(resteasyClient)
                 .build();
+    }
+
+    private boolean hasClientAssertion() {
+        return properties.getClientAssertionFile() != null
+                && !properties.getClientAssertionFile().isBlank();
     }
 
     private void checkServerVersion() {

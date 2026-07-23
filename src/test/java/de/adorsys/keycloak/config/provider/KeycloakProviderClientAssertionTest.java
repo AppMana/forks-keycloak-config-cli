@@ -91,7 +91,7 @@ class KeycloakProviderClientAssertionTest {
         assertEquals(1, requests.size());
         String credentials = Base64.getEncoder()
                 .encodeToString("existing-client:existing-secret".getBytes(StandardCharsets.UTF_8));
-        assertEquals("Basic" + credentials, requests.get(0).authorization());
+        assertEquals("Basic " + credentials, requests.get(0).authorization());
         assertFalse(requests.get(0).form().containsKey("client_assertion"));
         assertFalse(requests.get(0).form().containsKey("client_assertion_type"));
     }
@@ -142,6 +142,11 @@ class KeycloakProviderClientAssertionTest {
             server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
             server.createContext("/realms/appmana/protocol/openid-connect/token",
                     exchange -> handleTokenRequest(exchange, requests));
+            server.createContext("/realms/appmana/protocol/openid-connect/logout",
+                    exchange -> {
+                        exchange.sendResponseHeaders(204, -1);
+                        exchange.close();
+                    });
             server.start();
         }
 
