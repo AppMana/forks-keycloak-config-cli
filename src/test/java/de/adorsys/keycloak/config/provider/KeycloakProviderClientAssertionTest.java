@@ -70,13 +70,13 @@ class KeycloakProviderClientAssertionTest {
         assertEquals("client_credentials", requests.get(0).form().get("grant_type"));
         assertEquals("projected-token-one", requests.get(0).form().get("client_assertion"));
         assertEquals(ASSERTION_TYPE, requests.get(0).form().get("client_assertion_type"));
-        assertFalse(requests.get(0).form().containsKey("client_id"));
+        assertEquals("existing-client", requests.get(0).form().get("client_id"));
         assertNull(requests.get(0).authorization());
 
         assertEquals("refresh_token", requests.get(1).form().get("grant_type"));
         assertEquals("projected-token-two", requests.get(1).form().get("client_assertion"));
         assertEquals(ASSERTION_TYPE, requests.get(1).form().get("client_assertion_type"));
-        assertFalse(requests.get(1).form().containsKey("client_id"));
+        assertEquals("existing-client", requests.get(1).form().get("client_id"));
         assertNull(requests.get(1).authorization());
     }
 

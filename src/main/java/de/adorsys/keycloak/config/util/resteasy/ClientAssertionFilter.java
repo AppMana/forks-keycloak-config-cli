@@ -56,7 +56,6 @@ public class ClientAssertionFilter implements ClientRequestFilter {
 
         @SuppressWarnings("unchecked")
         MultivaluedMap<String, String> form = (MultivaluedMap<String, String>) entity;
-        form.remove("client_id");
         form.putSingle("client_assertion_type", CLIENT_ASSERTION_TYPE);
         form.putSingle("client_assertion", readAssertion());
         requestContext.getHeaders().remove(HttpHeaders.AUTHORIZATION);
