@@ -41,6 +41,7 @@ class ImportRealmWithPasskeyPropertiesIT extends AbstractImportIT {
      void shouldImportRealmWithPasskeysEnabled() throws Exception {
         RealmImport realmImport = getFirstImport("00_update-realm_with_passkeys-enabled.json");
         assertThat(realmImport.getWebAuthnPolicyPasswordlessMediation(), is("conditional"));
+        assertThat(realmImport.getWebAuthnPolicyPasswordlessResidentKey(), is("required"));
 
         doImport("00_update-realm_with_passkeys-enabled.json");
 

@@ -55,6 +55,8 @@ public class RealmImport extends RealmRepresentation {
     // independently versioned admin client used by this application.
     private String webAuthnPolicyPasswordlessMediation;
 
+    private String webAuthnPolicyPasswordlessResidentKey;
+
     private List<Map<String, Object>> organizationsRaw;
 
     @Override
@@ -125,6 +127,14 @@ public class RealmImport extends RealmRepresentation {
 
     public void setWebAuthnPolicyPasswordlessMediation(String webAuthnPolicyPasswordlessMediation) {
         this.webAuthnPolicyPasswordlessMediation = webAuthnPolicyPasswordlessMediation;
+    }
+
+    public String getWebAuthnPolicyPasswordlessResidentKey() {
+        return webAuthnPolicyPasswordlessResidentKey;
+    }
+
+    public void setWebAuthnPolicyPasswordlessResidentKey(String webAuthnPolicyPasswordlessResidentKey) {
+        this.webAuthnPolicyPasswordlessResidentKey = webAuthnPolicyPasswordlessResidentKey;
     }
 
     @SuppressWarnings("unused")
