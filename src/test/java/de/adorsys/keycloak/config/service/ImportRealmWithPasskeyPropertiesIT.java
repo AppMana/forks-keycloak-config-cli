@@ -24,6 +24,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
 import de.adorsys.keycloak.config.AbstractImportIT;
+import de.adorsys.keycloak.config.model.RealmImport;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.keycloak.representations.idm.RealmRepresentation;
@@ -38,6 +39,9 @@ class ImportRealmWithPasskeyPropertiesIT extends AbstractImportIT {
     @Test
     @Order(0)
      void shouldImportRealmWithPasskeysEnabled() throws Exception {
+        RealmImport realmImport = getFirstImport("00_update-realm_with_passkeys-enabled.json");
+        assertThat(realmImport.getWebAuthnPolicyPasswordlessMediation(), is("conditional"));
+
         doImport("00_update-realm_with_passkeys-enabled.json");
 
         RealmRepresentation updatedRealm = keycloakProvider.getInstance().realm(REALM_NAME).toRepresentation();

@@ -51,6 +51,10 @@ public class RealmImport extends RealmRepresentation {
     // When set to true, Keycloak automatically creates an "admin-permissions" client
     private Boolean adminPermissionsEnabled;
 
+    // Added to the server representation in Keycloak 26.7, after the
+    // independently versioned admin client used by this application.
+    private String webAuthnPolicyPasswordlessMediation;
+
     private List<Map<String, Object>> organizationsRaw;
 
     @Override
@@ -113,6 +117,14 @@ public class RealmImport extends RealmRepresentation {
 
     public void setAdminPermissionsEnabled(Boolean adminPermissionsEnabled) {
         this.adminPermissionsEnabled = adminPermissionsEnabled;
+    }
+
+    public String getWebAuthnPolicyPasswordlessMediation() {
+        return webAuthnPolicyPasswordlessMediation;
+    }
+
+    public void setWebAuthnPolicyPasswordlessMediation(String webAuthnPolicyPasswordlessMediation) {
+        this.webAuthnPolicyPasswordlessMediation = webAuthnPolicyPasswordlessMediation;
     }
 
     @SuppressWarnings("unused")
