@@ -20,6 +20,7 @@
 
 package de.adorsys.keycloak.config.service;
 
+import de.adorsys.keycloak.config.model.ExtendedRealmRepresentation;
 import de.adorsys.keycloak.config.model.RealmImport;
 import de.adorsys.keycloak.config.properties.ImportConfigProperties;
 import de.adorsys.keycloak.config.provider.KeycloakProvider;
@@ -191,7 +192,7 @@ public class RealmImportService {
     private void createRealm(RealmImport realmImport) {
         logger.debug("Creating realm '{}' ...", realmImport.getRealm());
 
-        RealmRepresentation realm = CloneUtil.deepClone(realmImport, RealmRepresentation.class,
+        RealmRepresentation realm = CloneUtil.deepClone(realmImport, ExtendedRealmRepresentation.class,
                 ignoredPropertiesForRealmImport);
         realmRepository.create(realm);
 
@@ -206,7 +207,7 @@ public class RealmImportService {
     private void updateRealm(RealmImport realmImport) {
         logger.debug("Updating realm '{}'...", realmImport.getRealm());
 
-        RealmRepresentation realm = CloneUtil.deepClone(realmImport, RealmRepresentation.class,
+        RealmRepresentation realm = CloneUtil.deepClone(realmImport, ExtendedRealmRepresentation.class,
                 ignoredPropertiesForRealmImport);
 
         RealmRepresentation existingRealm = realmRepository.get(realmImport.getRealm());

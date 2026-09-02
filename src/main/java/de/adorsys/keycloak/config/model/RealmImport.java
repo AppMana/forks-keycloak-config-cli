@@ -24,7 +24,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.keycloak.representations.idm.AuthenticationFlowRepresentation;
-import org.keycloak.representations.idm.RealmRepresentation;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -34,7 +33,7 @@ import java.util.Map;
 
 @Component
 @ConditionalOnProperty(prefix = "run", name = "operation", havingValue = "IMPORT", matchIfMissing = true)
-public class RealmImport extends RealmRepresentation {
+public class RealmImport extends ExtendedRealmRepresentation {
     private List<AuthenticationFlowImport> authenticationFlowImports;
 
     private JsonNode userProfile;
@@ -51,11 +50,6 @@ public class RealmImport extends RealmRepresentation {
     // When set to true, Keycloak automatically creates an "admin-permissions" client
     private Boolean adminPermissionsEnabled;
 
-    // Added to the server representation in Keycloak 26.7, after the
-    // independently versioned admin client used by this application.
-    private String webAuthnPolicyPasswordlessMediation;
-
-    private String webAuthnPolicyPasswordlessResidentKey;
 
     private List<Map<String, Object>> organizationsRaw;
 
@@ -119,22 +113,6 @@ public class RealmImport extends RealmRepresentation {
 
     public void setAdminPermissionsEnabled(Boolean adminPermissionsEnabled) {
         this.adminPermissionsEnabled = adminPermissionsEnabled;
-    }
-
-    public String getWebAuthnPolicyPasswordlessMediation() {
-        return webAuthnPolicyPasswordlessMediation;
-    }
-
-    public void setWebAuthnPolicyPasswordlessMediation(String webAuthnPolicyPasswordlessMediation) {
-        this.webAuthnPolicyPasswordlessMediation = webAuthnPolicyPasswordlessMediation;
-    }
-
-    public String getWebAuthnPolicyPasswordlessResidentKey() {
-        return webAuthnPolicyPasswordlessResidentKey;
-    }
-
-    public void setWebAuthnPolicyPasswordlessResidentKey(String webAuthnPolicyPasswordlessResidentKey) {
-        this.webAuthnPolicyPasswordlessResidentKey = webAuthnPolicyPasswordlessResidentKey;
     }
 
     @SuppressWarnings("unused")

@@ -21,7 +21,9 @@
 package de.adorsys.keycloak.config.repository;
 
 import de.adorsys.keycloak.config.exception.KeycloakRepositoryException;
+import de.adorsys.keycloak.config.model.ExtendedRealmRepresentation;
 import de.adorsys.keycloak.config.provider.KeycloakProvider;
+import de.adorsys.keycloak.config.util.JsonUtil;
 import de.adorsys.keycloak.config.util.ResponseUtil;
 import org.apache.commons.lang3.ObjectUtils;
 import org.keycloak.admin.client.Keycloak;
@@ -88,6 +90,7 @@ public class RealmRepository {
 
         try {
             realmsResource.create(realm);
+            updateExtendedFields(realm);
         } catch (WebApplicationException error) {
             String errorMessage = ResponseUtil.getErrorMessage(error);
             throw new KeycloakRepositoryException(
@@ -112,10 +115,12 @@ public class RealmRepository {
 
         try {
             // https://github.com/adorsys/keycloak-config-cli/issues/1220
-            RealmRepresentation patchedRealm = de.adorsys.keycloak.config.util.CloneUtil.deepClone(realm,
-                    "clientProfiles", "clientPolicies");
+            RealmRepresentation patchedRealm = preserveExtendedFields(
+                    de.adorsys.keycloak.config.util.CloneUtil.deepClone(realm,
+                            "clientProfiles", "clientPolicies"));
 
             getResource(realm.getRealm()).update(patchedRealm);
+            updateExtendedFields(patchedRealm);
         } catch (Throwable error) {
             String errorMessage = error instanceof WebApplicationException
                     ? ResponseUtil.getErrorMessage((WebApplicationException) error)
@@ -125,6 +130,34 @@ public class RealmRepository {
                     String.format("Cannot update realm '%s': %s", realm.getRealm(), errorMessage),
                     error);
         }
+    }
+
+    private void updateExtendedFields(RealmRepresentation realm) {
+        if (realm instanceof ExtendedRealmRepresentation) {
+            keycloakProvider.putJson("/admin/realms/" + realm.getRealm(), JsonUtil.toJson(realm));
+        }
+    }
+
+    private ExtendedRealmRepresentation preserveExtendedFields(RealmRepresentation realm) {
+        ExtendedRealmRepresentation extended = de.adorsys.keycloak.config.util.CloneUtil.deepClone(
+                realm, ExtendedRealmRepresentation.class);
+        if (extended.getWebAuthnPolicyPasswordlessMediation() != null
+                && extended.getWebAuthnPolicyPasswordlessResidentKey() != null) {
+            return extended;
+        }
+
+        ExtendedRealmRepresentation current = JsonUtil.readValueIgnoringUnknown(
+                keycloakProvider.getJson("/admin/realms/" + realm.getRealm()),
+                ExtendedRealmRepresentation.class);
+        if (extended.getWebAuthnPolicyPasswordlessMediation() == null) {
+            extended.setWebAuthnPolicyPasswordlessMediation(
+                    current.getWebAuthnPolicyPasswordlessMediation());
+        }
+        if (extended.getWebAuthnPolicyPasswordlessResidentKey() == null) {
+            extended.setWebAuthnPolicyPasswordlessResidentKey(
+                    current.getWebAuthnPolicyPasswordlessResidentKey());
+        }
+        return extended;
     }
 
     public RealmRepresentation partialExport(String realmName, boolean exportGroupsAndRoles, boolean exportClients) {

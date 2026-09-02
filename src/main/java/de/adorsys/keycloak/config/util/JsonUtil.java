@@ -21,6 +21,7 @@
 package de.adorsys.keycloak.config.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.NullNode;
@@ -81,6 +82,16 @@ public class JsonUtil {
     public static <T> T readValue(String value, Class<T> type) {
         try {
             return value == null ? null : objectMapper.readValue(value, type);
+        } catch (JsonProcessingException e) {
+            throw new ImportProcessingException(e);
+        }
+    }
+
+    public static <T> T readValueIgnoringUnknown(String value, Class<T> type) {
+        try {
+            return value == null ? null : objectMapper.readerFor(type)
+                    .without(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                    .readValue(value);
         } catch (JsonProcessingException e) {
             throw new ImportProcessingException(e);
         }

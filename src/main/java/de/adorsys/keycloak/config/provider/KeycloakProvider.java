@@ -51,6 +51,7 @@ import java.time.Duration;
 import java.util.function.Supplier;
 
 import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Form;
 import jakarta.ws.rs.core.MediaType;
@@ -223,6 +224,41 @@ public class KeycloakProvider implements AutoCloseable {
             return getInstance().proxy(proxyClass, uri);
         } catch (URISyntaxException e) {
             throw new KeycloakProviderException(e);
+        }
+    }
+
+    public void putJson(String path, String body) {
+        Keycloak instance = getInstance();
+        String accessToken = instance.tokenManager().getAccessToken().getToken();
+
+        try (var client = ClientBuilder.newClient();
+                Response response = client.target(properties.getUrl())
+                        .path(path)
+                        .request(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken)
+                        .put(Entity.json(body))) {
+            if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
+                throw new KeycloakProviderException("Keycloak JSON update failed with status "
+                        + response.getStatus() + ": " + response.readEntity(String.class));
+            }
+        }
+    }
+
+    public String getJson(String path) {
+        Keycloak instance = getInstance();
+        String accessToken = instance.tokenManager().getAccessToken().getToken();
+
+        try (var client = ClientBuilder.newClient();
+                Response response = client.target(properties.getUrl())
+                        .path(path)
+                        .request(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken)
+                        .get()) {
+            if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
+                throw new KeycloakProviderException("Keycloak JSON read failed with status "
+                        + response.getStatus() + ": " + response.readEntity(String.class));
+            }
+            return response.readEntity(String.class);
         }
     }
 

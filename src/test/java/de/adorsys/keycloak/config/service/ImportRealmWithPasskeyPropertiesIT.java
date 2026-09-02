@@ -23,8 +23,14 @@ package de.adorsys.keycloak.config.service;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.adorsys.keycloak.config.AbstractImportIT;
+import de.adorsys.keycloak.config.model.ExtendedRealmRepresentation;
 import de.adorsys.keycloak.config.model.RealmImport;
+import de.adorsys.keycloak.config.util.CloneUtil;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.core.MediaType;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.keycloak.representations.idm.RealmRepresentation;
@@ -42,12 +48,19 @@ class ImportRealmWithPasskeyPropertiesIT extends AbstractImportIT {
         RealmImport realmImport = getFirstImport("00_update-realm_with_passkeys-enabled.json");
         assertThat(realmImport.getWebAuthnPolicyPasswordlessMediation(), is("conditional"));
         assertThat(realmImport.getWebAuthnPolicyPasswordlessResidentKey(), is("required"));
+        ExtendedRealmRepresentation update = CloneUtil.deepClone(
+                realmImport, ExtendedRealmRepresentation.class);
+        assertThat(update.getWebAuthnPolicyPasswordlessMediation(), is("conditional"));
+        assertThat(update.getWebAuthnPolicyPasswordlessResidentKey(), is("required"));
 
         doImport("00_update-realm_with_passkeys-enabled.json");
 
         RealmRepresentation updatedRealm = keycloakProvider.getInstance().realm(REALM_NAME).toRepresentation();
         assertThat(updatedRealm.getWebAuthnPolicyPasswordlessPasskeysEnabled(), is(true));
         assertThat(updatedRealm.getWebAuthnPolicyPasswordlessRpEntityName(), is("Keycloak"));
+        JsonNode rawRealm = getRawRealm();
+        assertThat(rawRealm.path("webAuthnPolicyPasswordlessMediation").asText(), is("conditional"));
+        assertThat(rawRealm.path("webAuthnPolicyPasswordlessResidentKey").asText(), is("required"));
     }
 
     @Test
@@ -75,6 +88,20 @@ class ImportRealmWithPasskeyPropertiesIT extends AbstractImportIT {
         updatedRealm = keycloakProvider.getInstance().realm(REALM_NAME).toRepresentation();
         assertThat(updatedRealm.getWebAuthnPolicyPasswordlessPasskeysEnabled(), is(true));
         assertThat(updatedRealm.getWebAuthnPolicyPasswordlessRpEntityName(), is("Keycloak"));
+    }
+
+    private JsonNode getRawRealm() throws Exception {
+        var keycloak = keycloakProvider.getInstance();
+        var accessToken = keycloak.tokenManager().getAccessToken().getToken();
+
+        try (var client = ClientBuilder.newClient();
+                var response = client.target(keycloakProvider.getUrl())
+                        .path("/admin/realms/" + REALM_NAME)
+                        .request(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken)
+                        .get()) {
+            return new ObjectMapper().readTree(response.readEntity(String.class));
+        }
     }
 
 }
